@@ -48,12 +48,24 @@ public enum CommandLine {
     = (0..<Int(argc)).map { String(cString: _unsafeArgv[$0]!) }
 }
 
+@warn_unused_result
+@_silgen_name("_swift_Process_initializeExternalRuntimeIfAny")
+func _swift_Process_initializeExternalRuntimeIfAny(
+  _ argc: Int32,
+  _ argv: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
+) -> Int32
+
 // FIXME(ABI): Remove this and the entrypoints in SILGen.
+
 @_transparent
 public // COMPILER_INTRINSIC
 func _stdlib_didEnterMain(
   argc: Int32, argv: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
 ) {
+  // Initialize the runtime if it is present. It will consume any
+  // -runtime args and leave the rest for the program.
+  let programArgc = _swift_Process_initializeExternalRuntimeIfAny(argc, argv)
+
   // Initialize the CommandLine.argc and CommandLine.unsafeArgv variables with the
   // values that were passed in to main.
   CommandLine._argc = Int32(argc)

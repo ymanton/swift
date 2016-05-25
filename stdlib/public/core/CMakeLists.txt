@@ -141,6 +141,7 @@ set(SWIFTLIB_SOURCES
   Availability.swift
   CollectionOfOne.swift
   ExistentialCollection.swift.gyb
+  ExternalRuntime.c
   Mirror.swift
   CommandLine.swift
   SliceBuffer.swift
