@@ -161,6 +161,9 @@ public:
   /// Enable use of the swiftcall calling convention.
   unsigned UseSwiftCall : 1;
 
+  /// Emit patchable functions for use by runtime tools.
+  unsigned EmitPatchableFunctions : 1;
+
   /// List of backend command-line options for -embed-bitcode.
   std::vector<uint8_t> CmdArgs;
 
@@ -177,7 +180,8 @@ public:
         PrintInlineTree(false), EmbedMode(IRGenEmbedMode::None),
         HasValueNamesSetting(false), ValueNames(false),
         EnableReflectionMetadata(true), EnableReflectionNames(true),
-        UseIncrementalLLVMCodeGen(true), UseSwiftCall(false), CmdArgs(),
+        UseIncrementalLLVMCodeGen(true), UseSwiftCall(false),
+        EmitPatchableFunctions(false), CmdArgs(),
         SanitizeCoverage(llvm::SanitizerCoverageOptions()) {}
 
   /// Gets the name of the specified output filename.
