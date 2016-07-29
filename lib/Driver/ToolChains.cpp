@@ -384,6 +384,9 @@ ToolChain::constructInvocation(const CompileJobAction &job,
   if (context.Args.hasArg(options::OPT_embed_bitcode_marker))
     Arguments.push_back("-embed-bitcode-marker");
 
+  if (context.Args.hasArg(options::OPT_enable_jit_support))
+    Arguments.push_back("-enable-jit-support");
+
   return II;
 }
 

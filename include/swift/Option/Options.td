@@ -466,6 +466,10 @@ def embed_bitcode_marker : Flag<["-"], "embed-bitcode-marker">,
   Flags<[FrontendOption, NoInteractiveOption]>,
   HelpText<"Embed placeholder LLVM IR data as a marker">;
 
+def enable_jit_support : Flag<["-"], "enable-jit-support">,
+  Flags<[FrontendOption, NoInteractiveOption]>,
+  HelpText<"Enable (experimental) runtime JIT support">;
+
 def enable_testing : Flag<["-"], "enable-testing">,
   Flags<[FrontendOption, NoInteractiveOption, HelpHidden]>,
   HelpText<"Allows this module's internal API to be accessed for testing">;
