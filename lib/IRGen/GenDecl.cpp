@@ -1561,6 +1561,18 @@ llvm::Function *swift::irgen::createFunction(IRGenModule &IGM,
   fn->setDLLStorageClass(linkInfo.getDLLStorage());
   fn->setCallingConv(cc);
 
+  if (IGM.IRGen.Opts.EmitPatchableFunctions) {
+    llvm::Type     *Int64Ty = llvm::Type::getInt64Ty(IGM.getLLVMContext());
+    llvm::Constant *prefixStructElems[4] = {
+      llvm::Constant::getNullValue(Int64Ty),
+      llvm::Constant::getNullValue(Int64Ty),
+      llvm::Constant::getNullValue(Int64Ty),
+      llvm::Constant::getNullValue(Int64Ty)
+    };
+    llvm::Constant *prefixStruct = llvm::ConstantStruct::getAnon(prefixStructElems, /*Packed=*/true);
+    fn->setPrefixData(prefixStruct);
+  }
+
   if (insertBefore) {
     IGM.Module.getFunctionList().insert(insertBefore->getIterator(), fn);
   } else {

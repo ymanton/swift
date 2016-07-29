@@ -1565,6 +1565,8 @@ static bool ParseIRGenArgs(IRGenOptions &Opts, ArgList &Args,
   if (Args.hasArg(OPT_disable_llvm_verify))
     Opts.Verify = false;
 
+  Opts.EmitPatchableFunctions |= Args.hasArg(OPT_enable_jit_support);
+
   Opts.EmitStackPromotionChecks |= Args.hasArg(OPT_stack_promotion_checks);
   if (const Arg *A = Args.getLastArg(OPT_stack_promotion_limit)) {
     unsigned limit;

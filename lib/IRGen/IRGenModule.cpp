@@ -805,6 +805,10 @@ llvm::AttributeSet IRGenModule::constructInitialAttributes() {
         "no-frame-pointer-elim-non-leaf");
   }
 
+  if (IRGen.Opts.EmitPatchableFunctions)
+    attrsUpdated = attrsUpdated.addAttribute(LLVMContext,
+                     llvm::AttributeSet::FunctionIndex, "patchable-function", "prologue-short-redirect");
+
   // Add target-cpu and target-features if they are non-null.
   auto *Clang = static_cast<ClangImporter *>(Context.getClangModuleLoader());
   clang::TargetOptions &ClangOpts = Clang->getTargetInfo().getTargetOpts();
