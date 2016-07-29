@@ -474,6 +474,9 @@ ToolChain::constructInvocation(const CompileJobAction &job,
     Arguments.push_back("-index-system-modules");
   }
 
+  if (context.Args.hasArg(options::OPT_enable_jit_support))
+    Arguments.push_back("-enable-jit-support");
+
   return II;
 }
 
