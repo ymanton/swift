@@ -38,6 +38,13 @@ public func _stdlib_compareNSStringDeterministicUnicodeCollationPointer(
 ) -> Int32
 #endif
 
+@_silgen_name("_swift_string_memcmp")
+func _swift_string_memcmp(
+  _ s1: UnsafeMutableRawPointer,
+  _ s2: UnsafeMutableRawPointer,
+  _ n: Int
+) -> Int
+
 extension String {
 #if _runtime(_ObjC)
   /// This is consistent with Foundation, but incorrect as defined by Unicode.
@@ -69,7 +76,7 @@ extension String {
   @inline(never)
   @_semantics("stdlib_binary_only") // Hide the CF/ICU dependency
   public  // @testable
-  func _compareDeterministicUnicodeCollation(_ rhs: String) -> Int {
+  func _compareDeterministicUnicodeCollation(_ rhs: String, offset: Int = 0) -> Int {
     // Note: this operation should be consistent with equality comparison of
     // Character.
 #if _runtime(_ObjC)
@@ -95,18 +102,18 @@ extension String {
       return -rhs._compareDeterministicUnicodeCollation(self)
     case (false, false):
       return Int(_swift_stdlib_unicode_compare_utf16_utf16(
-        _core.startUTF16, Int32(_core.count),
-        rhs._core.startUTF16, Int32(rhs._core.count)))
+        _core.startUTF16 + offset, Int32(_core.count - offset),
+        rhs._core.startUTF16 + offset, Int32(rhs._core.count - offset)))
     case (true, true):
       return Int(_swift_stdlib_unicode_compare_utf8_utf8(
-        _core.startASCII, Int32(_core.count),
-        rhs._core.startASCII, Int32(rhs._core.count)))
+        _core.startASCII + offset, Int32(_core.count - offset),
+        rhs._core.startASCII + offset, Int32(rhs._core.count - offset)))
     }
 #endif
   }
 
   public  // @testable
-  func _compareString(_ rhs: String) -> Int {
+  func _compareString(_ rhs: String, offset: Int = 0) -> Int {
 #if _runtime(_ObjC)
     // We only want to perform this optimization on objc runtimes. Elsewhere,
     // we will make it follow the unicode collation algorithm even for ASCII.
@@ -115,7 +122,7 @@ extension String {
       return _compareASCII(rhs)
     }
 #endif
-    return _compareDeterministicUnicodeCollation(rhs)
+    return _compareDeterministicUnicodeCollation(rhs, offset: offset)
   }
 }
 
@@ -133,14 +140,39 @@ extension String : Equatable {
         lhs._core.startASCII, rhs._core.startASCII,
         rhs._core.count) == 0
     }
+#else
+    var firstDiff: Int = 0
+    if lhs._core.isASCII == rhs._core.isASCII &&
+       lhs._core.hasContiguousStorage && rhs._core.hasContiguousStorage {
+      let n = min(lhs._core.count, rhs._core.count) << lhs._core.elementShift
+      let lhsStart = lhs._core.isASCII ? UnsafeMutableRawPointer(lhs._core.startASCII) : UnsafeMutableRawPointer(lhs._core.startUTF16)
+      let rhsStart = lhs._core.isASCII ? UnsafeMutableRawPointer(rhs._core.startASCII) : UnsafeMutableRawPointer(rhs._core.startUTF16)
+      firstDiff = _swift_string_memcmp(lhsStart, rhsStart, n)
+      if lhs._core.count == rhs._core.count && firstDiff == n {
+        return true
+      }
+      firstDiff = firstDiff >> lhs._core.elementShift
+    }
+    return lhs._compareString(rhs, offset: firstDiff) == 0
 #endif
-    return lhs._compareString(rhs) == 0
   }
 }
 
 extension String : Comparable {
   public static func < (lhs: String, rhs: String) -> Bool {
-    return lhs._compareString(rhs) < 0
+    var firstDiff: Int = 0
+    if lhs._core.isASCII == rhs._core.isASCII &&
+       lhs._core.hasContiguousStorage && rhs._core.hasContiguousStorage {
+      let n = min(lhs._core.count, rhs._core.count) << lhs._core.elementShift
+      let lhsStart = lhs._core.isASCII ? UnsafeMutableRawPointer(lhs._core.startASCII) : UnsafeMutableRawPointer(lhs._core.startUTF16)
+      let rhsStart = lhs._core.isASCII ? UnsafeMutableRawPointer(rhs._core.startASCII) : UnsafeMutableRawPointer(rhs._core.startUTF16)
+      firstDiff = _swift_string_memcmp(lhsStart, rhsStart, n)
+      if lhs._core.count == rhs._core.count && firstDiff == n {
+        return false
+      }
+      firstDiff = firstDiff >> lhs._core.elementShift
+    }
+    return lhs._compareString(rhs, offset: firstDiff) < 0
   }
 }
 

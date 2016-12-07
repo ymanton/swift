@@ -112,6 +112,7 @@ set(SWIFTLIB_ESSENTIAL
   StringBuffer.swift
   StringComparable.swift
   StringCore.swift
+  StringHelpers.cpp
   StringInterpolation.swift.gyb
   StringLegacy.swift
   StringRangeReplaceableCollection.swift.gyb
