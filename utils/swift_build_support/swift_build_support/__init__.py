@@ -20,8 +20,10 @@ from .which import which
 __all__ = [
     "cmake",
     "debug",
+    "diagnostics",
     "migration",
     "ninja",
+    "shell",
     "tar",
     "targets",
     "toolchain",
